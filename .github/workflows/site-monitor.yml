@@ -9,7 +9,7 @@ on:
         type: boolean
         default: false
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: site-health-monitor
   cancel-in-progress: false
@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: .monitor-state.json
@@ -36,3 +38,7 @@ jobs:
         with:
           path: .monitor-state.json
           key: site-monitor-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Record weekly availability and retain repository activity
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/record-monitor-status.mjs
